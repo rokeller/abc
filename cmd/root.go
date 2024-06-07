@@ -31,7 +31,7 @@ var execCtx executionContext
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintln(rootCmd.OutOrStderr(), err)
+		fmt.Fprintln(rootCmd.OutOrStdout(), err)
 		os.Exit(1)
 	}
 }
