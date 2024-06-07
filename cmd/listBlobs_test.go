@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"errors"
 	"strings"
 	"testing"
@@ -25,26 +24,16 @@ func TestBlobsListCmd_Interface(t *testing.T) {
 }
 
 func TestBlobsListCmd_Functionality(t *testing.T) {
-	manyBlobs := sequentialStrings(0, 10, "my/blob%04d.txt")
+	manyBlobs := sequentialStrings(0, 10, "blob%04d.txt")
 	setupManyBlobs(manyBlobs)
 
 	tc := []testCase{
 		{
 			name:   "list of blobs",
-			args:   []string{"blobs", "ls", "-n=foo", "-c=list-blobs"},
+			args:   []string{"blobs", "ls", "-n=foo", "-c=blobs"},
 			stdOut: strings.Join(manyBlobs, "\n"),
 		},
 	}
 
 	executeTestCases(t, tc)
-}
-
-func setupManyBlobs(blobNames []string) {
-	containerClient := execCtx.serviceClient.NewContainerClient("list-blobs")
-	containerClient.Create(context.Background(), nil)
-
-	for _, blobName := range blobNames {
-		blobClient := containerClient.NewBlockBlobClient(blobName)
-		blobClient.UploadBuffer(context.Background(), []byte{}, nil)
-	}
 }
