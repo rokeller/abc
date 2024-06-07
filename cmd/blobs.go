@@ -5,6 +5,7 @@ import (
 )
 
 func init() {
+	addAccountFlag(blobsCmd)
 	blobsCmd.PersistentFlags().StringP(
 		"container", "c", "", "name of the blob container")
 	blobsCmd.MarkPersistentFlagRequired("container")

@@ -22,8 +22,11 @@ var rootCmd = &cobra.Command{
 		// glog flags parsing
 		flag.Parse()
 
-		accountName := cmd.Flag("account").Value.String()
-		initExecContext(accountName)
+		accountFlag := cmd.Flag("account")
+		if nil != accountFlag {
+			accountName := accountFlag.Value.String()
+			initExecContext(accountName)
+		}
 	},
 }
 
@@ -36,11 +39,12 @@ func Execute() {
 	}
 }
 
-func init() {
-	rootCmd.PersistentFlags().StringP(
-		"account", "n", "", "name of the storage account")
-	rootCmd.MarkPersistentFlagRequired("account")
+func addAccountFlag(c *cobra.Command) {
+	c.PersistentFlags().StringP("account", "n", "", "name of the storage account")
+	c.MarkPersistentFlagRequired("account")
+}
 
+func init() {
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 }
 

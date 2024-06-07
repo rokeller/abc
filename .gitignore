@@ -1,0 +1,4 @@
+.azurite/
+abc
+.env
+/coverage.*
