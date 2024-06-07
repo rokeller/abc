@@ -72,10 +72,14 @@ func execute(t *testing.T, args ...string) (string, string, error) {
 	c.SetErr(bufErr)
 
 	// reset all flags to start clean
-	c.Flags().VisitAll(func(f *pflag.Flag) {
-		f.Value.Set(f.DefValue)
-		f.Changed = false
-	})
+	cmdFn := func(c *cobra.Command) {
+		c.Flags().VisitAll(func(f *pflag.Flag) {
+			f.Value.Set(f.DefValue)
+			f.Changed = false
+		})
+	}
+	visitCommands(c.Commands(), cmdFn)
+
 	c.SetArgs(args)
 
 	c.PersistentPreRun = func(cmd *cobra.Command, args []string) {}
@@ -94,4 +98,11 @@ func sequentialStrings(start, end int, template string) []string {
 	}
 
 	return items
+}
+
+func visitCommands(cs []*cobra.Command, cmdFn func(c *cobra.Command)) {
+	for _, c := range cs {
+		cmdFn(c)
+		visitCommands(c.Commands(), cmdFn)
+	}
 }
