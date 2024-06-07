@@ -3,8 +3,8 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"log"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/bloberror"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/container"
 	"github.com/golang/glog"
 	"github.com/spf13/cobra"
@@ -19,10 +19,10 @@ var listBlobsCmd = &cobra.Command{
 	Short: "List all blobs",
 	Long:  "List all blobs in a storage account's blob container",
 	Args:  cobra.NoArgs,
-	Run:   runListBlobsFlat,
+	RunE:  runListBlobsFlat,
 }
 
-func runListBlobsFlat(cmd *cobra.Command, args []string) {
+func runListBlobsFlat(cmd *cobra.Command, args []string) error {
 	containerClient := execCtx.serviceClient.NewContainerClient(execCtx.containerName)
 	glog.Infof("list blobs flat: %s", containerClient.URL())
 
@@ -33,8 +33,13 @@ func runListBlobsFlat(cmd *cobra.Command, args []string) {
 	for pager.More() {
 		resp, err := pager.NextPage(context.TODO())
 		if err != nil {
-			log.Fatal(err)
+			if bloberror.HasCode(err, bloberror.ContainerNotFound) {
+				err = fmt.Errorf("container \"%s\" does not exist", execCtx.containerName)
+			}
+
+			return err
 		}
+
 		for _, blob := range resp.ListBlobsFlatSegmentResponse.Segment.BlobItems {
 			accessTierInferred := "set"
 			if nil != blob.Properties.AccessTierInferred && *blob.Properties.AccessTierInferred {
@@ -43,7 +48,9 @@ func runListBlobsFlat(cmd *cobra.Command, args []string) {
 
 			glog.Infof("found blob: %s (%s, %s)",
 				*blob.Name, *blob.Properties.AccessTier, accessTierInferred)
-			fmt.Println(*blob.Name)
+			fmt.Fprintln(cmd.OutOrStdout(), *blob.Name)
 		}
 	}
+
+	return nil
 }
