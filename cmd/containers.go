@@ -5,6 +5,7 @@ import (
 )
 
 func init() {
+	addAccountFlag(containersCmd)
 	rootCmd.AddCommand(containersCmd)
 }
 
