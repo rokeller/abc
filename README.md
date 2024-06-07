@@ -9,6 +9,7 @@ as follows.
 
 * `containers` - do stuff with containers
   * `ls` - list containers on a storage account
+  * `mk` - create containers on a storage account
 * `blobs` - do stuff with blobs in containers
   * `ls` - list blobs in a container
   * `rm` - remove blobs from a container
