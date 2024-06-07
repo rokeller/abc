@@ -9,13 +9,16 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/service"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+	"github.com/stretchr/testify/assert"
 )
 
 type testCase struct {
+	name   string
 	args   []string
+	err    error
 	stdOut string
 	stdErr string
-	err    error
 }
 
 func TestMain(m *testing.M) {
@@ -37,6 +40,27 @@ func setup() {
 	execCtx.serviceClient = client
 }
 
+func executeTestCases(t *testing.T, testCases []testCase) {
+	t.Helper()
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, testCase.executeTestCase)
+	}
+}
+
+func (testCase testCase) executeTestCase(t *testing.T) {
+	t.Helper()
+
+	stdOut, stdErr, err := execute(t, testCase.args...)
+
+	assert.Equal(t, testCase.err, err, "expected error must match")
+
+	if testCase.err == nil {
+		assert.Equal(t, testCase.stdOut, stdOut, "stdout must match")
+		assert.Equal(t, testCase.stdErr, stdErr, "stderr must match")
+	}
+}
+
 func execute(t *testing.T, args ...string) (string, string, error) {
 	t.Helper()
 
@@ -46,6 +70,12 @@ func execute(t *testing.T, args ...string) (string, string, error) {
 
 	c.SetOut(bufOut)
 	c.SetErr(bufErr)
+
+	// reset all flags to start clean
+	c.Flags().VisitAll(func(f *pflag.Flag) {
+		f.Value.Set(f.DefValue)
+		f.Changed = false
+	})
 	c.SetArgs(args)
 
 	c.PersistentPreRun = func(cmd *cobra.Command, args []string) {}
