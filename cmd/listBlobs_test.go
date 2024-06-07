@@ -33,6 +33,11 @@ func TestBlobsListCmd_Functionality(t *testing.T) {
 			args:   []string{"blobs", "ls", "-n=foo", "-c=blobs"},
 			stdOut: strings.Join(manyBlobs, "\n"),
 		},
+		{
+			name: "list of blobs: container does not exist",
+			args: []string{"blobs", "ls", "-n=foo", "-c=blah"},
+			err:  errors.New("container \"blah\" does not exist"),
+		},
 	}
 
 	executeTestCases(t, tc)
