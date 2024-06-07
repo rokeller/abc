@@ -56,3 +56,12 @@ func execute(t *testing.T, args ...string) (string, string, error) {
 		strings.TrimSpace(bufErr.String()),
 		err
 }
+
+func sequentialStrings(start, end int, template string) []string {
+	items := make([]string, end-start)
+	for i := range end - start {
+		items[i] = fmt.Sprintf(template, i+start)
+	}
+
+	return items
+}

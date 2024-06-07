@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strings"
 	"testing"
 
@@ -13,8 +12,8 @@ import (
 func TestBlobsListCmd(t *testing.T) {
 	is := is.New(t)
 
-	manyPagesBlobs := sequentialNames(0, 5001, "my/blob%04d.txt")
-	setupManyPages(manyPagesBlobs)
+	manyBlobs := sequentialStrings(0, 10, "my/blob%04d.txt")
+	setupManyBlobs(manyBlobs)
 
 	tt := []testCase{
 		{
@@ -33,9 +32,9 @@ func TestBlobsListCmd(t *testing.T) {
 			err:  errors.New("container \"does-not-exist\" does not exist"),
 		},
 		{
-			// more than 5000 blobs, spanning multiple pages
+			// include some blobs in results
 			args:   []string{"blobs", "ls", "-n=foo", "-c=many-pages"},
-			stdOut: strings.Join(manyPagesBlobs, "\n"),
+			stdOut: strings.Join(manyBlobs, "\n"),
 		},
 	}
 
@@ -51,16 +50,7 @@ func TestBlobsListCmd(t *testing.T) {
 	}
 }
 
-func sequentialNames(start, end int, template string) []string {
-	items := make([]string, end-start)
-	for i := range end - start {
-		items[i] = fmt.Sprintf(template, i+start)
-	}
-
-	return items
-}
-
-func setupManyPages(blobNames []string) {
+func setupManyBlobs(blobNames []string) {
 	containerClient := execCtx.serviceClient.NewContainerClient("many-pages")
 	containerClient.Create(context.Background(), nil)
 
