@@ -1,14 +1,20 @@
 name: Build
 
 on:
-  push:
-    branches: [ "main" ]
   pull_request:
+  push:
     branches: [ "main" ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    services:
+      azurite:
+        image: mcr.microsoft.com/azure-storage/azurite:latest
+        ports:
+          - 10000:10000
+
     steps:
     - uses: actions/checkout@v4
 
@@ -19,3 +25,6 @@ jobs:
 
     - name: Build
       run: go build -o _out/abc
+    
+    - name: Test
+      run: go test ./...

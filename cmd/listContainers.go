@@ -17,22 +17,22 @@ var listContainersCmd = &cobra.Command{
 	Short: "List all containers",
 	Long:  "List all containers in a storage account",
 	Args:  cobra.NoArgs,
-	Run:   runListContainers,
+	RunE:  runListContainers,
 }
 
-func runListContainers(cmd *cobra.Command, args []string) {
+func runListContainers(cmd *cobra.Command, args []string) error {
 	glog.Infof("list containers: %s", execCtx.serviceClient.URL())
-
 	pager := execCtx.serviceClient.NewListContainersPager(nil)
 	for pager.More() {
 		resp, err := pager.NextPage(context.Background())
 		if nil != err {
-			glog.Fatalf("failed to fetch page %v", err)
-			continue
+			return err
 		}
 
 		for _, container := range resp.ContainerItems {
-			fmt.Println(*container.Name)
+			fmt.Fprintln(cmd.OutOrStdout(), *container.Name)
 		}
 	}
+
+	return nil
 }

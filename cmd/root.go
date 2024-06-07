@@ -21,6 +21,9 @@ var rootCmd = &cobra.Command{
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		// glog flags parsing
 		flag.Parse()
+
+		accountName := cmd.Flag("account").Value.String()
+		initExecContext(accountName)
 	},
 }
 
@@ -28,22 +31,14 @@ var execCtx executionContext
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
+		fmt.Fprintln(rootCmd.OutOrStdout(), err)
 		os.Exit(1)
 	}
 }
 
 func init() {
-	var (
-		accountName string
-	)
-
-	cobra.OnInitialize(func() {
-		initExecContext(accountName)
-	})
-
-	rootCmd.PersistentFlags().StringVarP(
-		&accountName, "account", "n", "", "name of the storage account")
+	rootCmd.PersistentFlags().StringP(
+		"account", "n", "", "name of the storage account")
 	rootCmd.MarkPersistentFlagRequired("account")
 
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
