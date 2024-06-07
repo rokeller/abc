@@ -8,6 +8,13 @@ on:
 jobs:
   coverage:
     runs-on: ubuntu-latest
+
+    services:
+      azurite:
+        image: mcr.microsoft.com/azure-storage/azurite:latest
+        ports:
+          - 10000:10000
+
     steps:
     - uses: actions/checkout@v4
       with:
