@@ -37,7 +37,8 @@ jobs:
         ARCHIVE_BASE_NAME="abc-${{ matrix.os }}-${{ matrix.arch }}"
         GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build \
             -o _out/abc$EXT \
-            -ldflags '-s -w'
+            -ldflags "-s -w \
+                -X github.com/rokeller/abc/cmd.version=${{ github.event.release.name }}"
         
         case "${{ matrix.os }}" in
             windows)

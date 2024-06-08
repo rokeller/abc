@@ -11,12 +11,15 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
+var version string
 
 var rootCmd = &cobra.Command{
 	Use:   "abc",
 	Short: "abc manages blobs in Azure storage",
 	Long:  "abc (Azure Blob Commands) helps managing blobs in Azure storage",
 	Args:  cobra.NoArgs,
+
+	Version: version,
 
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		// glog flags parsing
