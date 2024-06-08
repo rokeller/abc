@@ -20,8 +20,6 @@ var blobsCmd = &cobra.Command{
 	Args:  cobra.NoArgs,
 
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		rootCmd.PersistentPreRun(cmd, args)
-
 		execCtx.containerName = cmd.Flag("container").Value.String()
 	},
 }

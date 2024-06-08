@@ -30,14 +30,7 @@ func TestMain(m *testing.M) {
 const AzuriteConnectionString = "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;"
 
 func setup() {
-	client, err := service.NewClientFromConnectionString(AzuriteConnectionString, nil)
-
-	if nil != err {
-		fmt.Printf("failed to create storage client: %v", err)
-		os.Exit(1)
-	}
-
-	execCtx.serviceClient = client
+	clientFactory = clientFactoryForTest
 }
 
 func executeTestCases(t *testing.T, testCases []testCase) {
@@ -105,4 +98,16 @@ func visitCommands(cs []*cobra.Command, cmdFn func(c *cobra.Command)) {
 		cmdFn(c)
 		visitCommands(c.Commands(), cmdFn)
 	}
+}
+
+const AzuriteConnectionString = "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;"
+
+func clientFactoryForTest(c *cobra.Command) (*service.Client, error) {
+	client, err := service.NewClientFromConnectionString(AzuriteConnectionString, nil)
+
+	if nil != err {
+		return nil, err
+	}
+
+	return client, nil
 }
