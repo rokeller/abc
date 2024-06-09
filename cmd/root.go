@@ -7,7 +7,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/service"
-	"github.com/golang/glog"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -21,18 +20,20 @@ var rootCmd = &cobra.Command{
 
 	Version: version,
 
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		// glog flags parsing
 		flag.Parse()
 
-		accountFlag := cmd.Flag("account")
-		if nil != accountFlag {
-			accountName := accountFlag.Value.String()
-			initExecContext(accountName)
+		if client, err := clientFactory(cmd); nil != err {
+			return err
+		} else {
+			execCtx.serviceClient = client
+			return nil
 		}
 	},
 }
 
+var clientFactory func(c *cobra.Command) (*service.Client, error) = clientFactoryForRelease
 var execCtx executionContext
 
 func Execute() {
@@ -48,24 +49,34 @@ func addAccountFlag(c *cobra.Command) {
 }
 
 func init() {
+	cobra.EnableTraverseRunHooks = true
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 }
 
-func initExecContext(accountName string) {
+func clientFactoryForRelease(c *cobra.Command) (*service.Client, error) {
+	accountFlag := c.Flag("account")
+	var accountName string
+
+	if nil != accountFlag {
+		accountName = accountFlag.Value.String()
+	} else {
+		// if the flag is not present, it's because it's not needed -- otherwise
+		// cobra would have already enforced it / reported an error.
+		// in fact, the flag will not be present for some automatic commands like
+		// for instance 'completion' and 'help' commands.
+		return nil, nil
+	}
+
 	cred, err := azidentity.NewDefaultAzureCredential(nil)
 	if nil != err {
-		glog.Exitf("failed to get Azure credentials: %v", err)
+		return nil, fmt.Errorf("failed to get Azure credentials: %v", err)
 	}
 
 	serviceURL := fmt.Sprintf("https://%s.blob.core.windows.net/", accountName)
 	serviceClient, err := service.NewClient(serviceURL, cred, nil)
 	if nil != err {
-		glog.Exitf("failed to get blob service client: %v", err)
+		return nil, fmt.Errorf("failed to get blob service client: %v", err)
 	}
 
-	glog.Infof("setting execution context: %s", serviceURL)
-	execCtx = executionContext{
-		serviceURL:    serviceURL,
-		serviceClient: serviceClient,
-	}
+	return serviceClient, nil
 }

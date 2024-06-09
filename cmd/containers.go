@@ -14,8 +14,4 @@ var containersCmd = &cobra.Command{
 	Short: "Operate on containers",
 	Long:  "Operate on containers in a storage account",
 	Args:  cobra.NoArgs,
-
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		rootCmd.PersistentPreRun(cmd, args)
-	},
 }
