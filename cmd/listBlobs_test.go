@@ -24,7 +24,7 @@ func TestBlobsListCmd_Interface(t *testing.T) {
 }
 
 func TestBlobsListCmd_Functionality(t *testing.T) {
-	manyBlobs := sequentialStrings(0, 10, "blob%04d.txt")
+	manyBlobs := sequentialStrings(1, 11, "blob%04d.txt")
 	setupManyBlobs(manyBlobs)
 
 	tc := []testCase{
@@ -37,6 +37,21 @@ func TestBlobsListCmd_Functionality(t *testing.T) {
 			name: "list of blobs: container does not exist",
 			args: []string{"blobs", "ls", "-n=foo", "-c=blah"},
 			err:  errors.New("container \"blah\" does not exist"),
+		},
+		{
+			name:   "filtered list of blobs - no match",
+			args:   []string{"blobs", "ls", "-n=foo", "-c=blobs", "-p=foo"},
+			stdOut: "",
+		},
+		{
+			name:   "filtered list of blobs - all match",
+			args:   []string{"blobs", "ls", "-n=foo", "-c=blobs", "-p=blob"},
+			stdOut: strings.Join(manyBlobs, "\n"),
+		},
+		{
+			name:   "filtered list of blobs - some match",
+			args:   []string{"blobs", "ls", "-n=foo", "-c=blobs", "-p=blob000"},
+			stdOut: strings.Join(manyBlobs[0:9], "\n"),
 		},
 	}
 
