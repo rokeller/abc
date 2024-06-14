@@ -12,6 +12,9 @@ import (
 
 func init() {
 	blobsCmd.AddCommand(listBlobsCmd)
+
+	listBlobsCmd.Flags().StringP(
+		"prefix", "p", "", "prefix of blobs to list")
 }
 
 var listBlobsCmd = &cobra.Command{
@@ -24,9 +27,12 @@ var listBlobsCmd = &cobra.Command{
 
 func runListBlobsFlat(cmd *cobra.Command, args []string) error {
 	containerClient := execCtx.serviceClient.NewContainerClient(execCtx.containerName)
-	glog.Infof("list blobs flat: %s", containerClient.URL())
+
+	prefix := getFlagValue(cmd, "prefix")
+	glog.Infof("list blobs flat: %s, prefix: %s", containerClient.URL(), prefix)
 
 	pager := containerClient.NewListBlobsFlatPager(&container.ListBlobsFlatOptions{
+		Prefix:  prefix,
 		Include: container.ListBlobsInclude{Snapshots: false, Versions: false},
 	})
 

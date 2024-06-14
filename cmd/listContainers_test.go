@@ -25,7 +25,7 @@ func TestContainersListCmd_Interface(t *testing.T) {
 }
 
 func TestContainersListCmd_Functionality(t *testing.T) {
-	manyContainers := sequentialStrings(0, 10, "test%04d")
+	manyContainers := sequentialStrings(1, 11, "test%04d")
 	setupManyContainers(manyContainers)
 
 	tc := []testCase{
@@ -33,6 +33,21 @@ func TestContainersListCmd_Functionality(t *testing.T) {
 			name:   "list of containers",
 			args:   []string{"containers", "ls", "-n=foo"},
 			stdOut: strings.Join(manyContainers, "\n"),
+		},
+		{
+			name:   "filtered list of containers - no match",
+			args:   []string{"containers", "ls", "-n=foo", "-p=foo"},
+			stdOut: "",
+		},
+		{
+			name:   "filtered list of containers - all match",
+			args:   []string{"containers", "ls", "-n=foo", "-p=test"},
+			stdOut: strings.Join(manyContainers, "\n"),
+		},
+		{
+			name:   "filtered list of containers - some match",
+			args:   []string{"containers", "ls", "-n=foo", "-p=test000"},
+			stdOut: strings.Join(manyContainers[0:9], "\n"),
 		},
 	}
 

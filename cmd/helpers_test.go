@@ -27,6 +27,19 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
+func TestGetFlagValue(t *testing.T) {
+	cmd := &cobra.Command{}
+	cmd.Flags().StringP("test-flag", "f", "default-value", "")
+
+	assert.Nil(t, getFlagValue(cmd, "does-not-exist"), "non-existing flags' values must be nil")
+	assert.NotNil(t, getFlagValue(cmd, "test-flag"), "existing flags' values must not be nil")
+	assert.Equal(t, "default-value", *getFlagValue(cmd, "test-flag"), "unset existing flags' values must equal the default")
+
+	cmd.Flags().Set("test-flag", "test-value")
+	assert.NotNil(t, getFlagValue(cmd, "test-flag"), "existing flags' values must not be nil")
+	assert.Equal(t, "test-value", *getFlagValue(cmd, "test-flag"), "existing flags' values must be correct")
+}
+
 func setup() {
 	clientFactory = clientFactoryForTest
 }
