@@ -8,6 +8,9 @@ on:
 jobs:
   coverage:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
 
     services:
       azurite:
@@ -29,7 +32,7 @@ jobs:
     - uses: gwatts/go-coverage-action@v2
       id: coverage
       with:
-        coverage-threshold: 0
+        coverage-threshold: 80
         fail-coverage: only_pull_requests
 
         cover-pkg: ./...
