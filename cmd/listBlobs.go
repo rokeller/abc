@@ -15,6 +15,10 @@ func init() {
 
 	listBlobsCmd.Flags().StringP(
 		"prefix", "p", "", "prefix of blobs to list")
+	listBlobsCmd.Flags().BoolP(
+		"deleted", "d", false, "include deleted blobs; deleted blobs will be listed with an '@deleted' suffix")
+	listBlobsCmd.Flags().BoolP(
+		"snapshots", "s", false, "include blob snapshots; snapshots will be listed with an '@<snapshot-id>' suffix")
 }
 
 var listBlobsCmd = &cobra.Command{
@@ -31,9 +35,15 @@ func runListBlobsFlat(cmd *cobra.Command, args []string) error {
 	prefix := getFlagValue(cmd, "prefix")
 	glog.Infof("list blobs flat: %s, prefix: %s", containerClient.URL(), prefix)
 
+	includeDeleted := getBoolFlagValue(cmd, "deleted")
+	includeSnapshots := getBoolFlagValue(cmd, "snapshots")
+
 	pager := containerClient.NewListBlobsFlatPager(&container.ListBlobsFlatOptions{
-		Prefix:  prefix,
-		Include: container.ListBlobsInclude{Snapshots: false, Versions: false},
+		Prefix: prefix,
+		Include: container.ListBlobsInclude{
+			Deleted:   *includeDeleted,
+			Snapshots: *includeSnapshots,
+		},
 	})
 
 	for pager.More() {
@@ -54,7 +64,15 @@ func runListBlobsFlat(cmd *cobra.Command, args []string) error {
 
 			glog.Infof("found blob: %s (%s, %s)",
 				*blob.Name, *blob.Properties.AccessTier, accessTierInferred)
-			fmt.Fprintln(cmd.OutOrStdout(), *blob.Name)
+
+			suffix := ""
+			if nil != blob.Deleted {
+				suffix += "@deleted"
+			}
+			if nil != blob.Snapshot {
+				suffix += fmt.Sprintf("@%s", *blob.Snapshot)
+			}
+			fmt.Fprintf(cmd.OutOrStdout(), "%s%s\n", *blob.Name, suffix)
 		}
 	}
 

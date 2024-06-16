@@ -13,3 +13,12 @@ func getFlagValue(c *cobra.Command, flagName string) *string {
 
 	return nil
 }
+
+func getBoolFlagValue(c *cobra.Command, flagName string) *bool {
+	val, err := c.Flags().GetBool(flagName)
+	if nil != err {
+		return nil
+	}
+
+	return &val
+}

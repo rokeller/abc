@@ -40,6 +40,25 @@ func TestGetFlagValue(t *testing.T) {
 	assert.Equal(t, "test-value", *getFlagValue(cmd, "test-flag"), "existing flags' values must be correct")
 }
 
+func TestGetBoolFlagValue(t *testing.T) {
+	cmd := &cobra.Command{}
+	cmd.Flags().BoolP("false-flag", "f", false, "")
+	cmd.Flags().BoolP("true-flag", "t", true, "")
+
+	assert.Nil(t, getBoolFlagValue(cmd, "does-not-exist"), "non-existing flags' values must be nil")
+	assert.NotNil(t, getBoolFlagValue(cmd, "false-flag"), "existing flags' values must not be nil")
+	assert.False(t, *getBoolFlagValue(cmd, "false-flag"), "unset existing flags' values must equal the default")
+	assert.NotNil(t, getBoolFlagValue(cmd, "true-flag"), "existing flags' values must not be nil")
+	assert.True(t, *getBoolFlagValue(cmd, "true-flag"), "unset existing flags' values must equal the default")
+
+	cmd.Flags().Set("false-flag", "true")
+	cmd.Flags().Set("true-flag", "false")
+	assert.NotNil(t, getBoolFlagValue(cmd, "false-flag"), "existing flags' values must not be nil")
+	assert.True(t, *getBoolFlagValue(cmd, "false-flag"), "existing flags' values must be correct")
+	assert.NotNil(t, getBoolFlagValue(cmd, "true-flag"), "existing flags' values must not be nil")
+	assert.False(t, *getBoolFlagValue(cmd, "true-flag"), "existing flags' values must be correct")
+}
+
 func setup() {
 	clientFactory = clientFactoryForTest
 }
