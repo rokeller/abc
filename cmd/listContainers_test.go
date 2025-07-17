@@ -10,14 +10,14 @@ import (
 func TestContainersListCmd_Interface(t *testing.T) {
 	tc := []testCase{
 		{
-			name: "unsupported argument",
-			args: []string{"containers", "ls", "foo"},
-			err:  errors.New("unknown command \"foo\" for \"abc containers ls\""),
-		},
-		{
 			name: "missing required flags",
 			args: []string{"containers", "ls"},
 			err:  errors.New("required flag(s) \"account\" not set"),
+		},
+		{
+			name: "unsupported argument",
+			args: []string{"containers", "ls", "foo"},
+			err:  errors.New("unknown command \"foo\" for \"abc containers ls\""),
 		},
 	}
 
