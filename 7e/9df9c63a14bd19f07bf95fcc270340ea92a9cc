@@ -1,0 +1,1 @@
+{"go-coverage-action-fmt":1,"coverage_pct":96.40287769784173,"pkg_stats":{"github.com/rokeller/abc":[100],"github.com/rokeller/abc/cmd":[95.96774193548387],"github.com/rokeller/abc/test_helpers":[100]},"skipped_count":0}
