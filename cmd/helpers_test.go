@@ -19,6 +19,8 @@ type testCase struct {
 	err    error
 	stdOut string
 	stdErr string
+
+	verify func(t *testing.T)
 }
 
 func TestMain(m *testing.M) {
@@ -76,11 +78,19 @@ func (testCase testCase) executeTestCase(t *testing.T) {
 
 	stdOut, stdErr, err := execute(t, testCase.args...)
 
-	assert.Equal(t, testCase.err, err, "expected error must match")
+	if nil != testCase.err {
+		assert.EqualError(t, err, testCase.err.Error(), "expected error must match")
+	} else {
+		assert.Nil(t, err, "expected no error")
+	}
 
 	if testCase.err == nil {
 		assert.Equal(t, testCase.stdOut, stdOut, "stdout must match")
 		assert.Equal(t, testCase.stdErr, stdErr, "stderr must match")
+	}
+
+	if nil != testCase.verify {
+		testCase.verify(t)
 	}
 }
 
