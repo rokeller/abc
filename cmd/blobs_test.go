@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"os"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
 )
@@ -23,4 +24,14 @@ func setupSnapshot(blobName string) *string {
 	resp, _ := blobClient.CreateSnapshot(context.Background(), &blob.CreateSnapshotOptions{})
 
 	return resp.Snapshot
+}
+
+func setupBlob(containerName, blobName string) {
+	containerClient := setupContainer(containerName)
+	blobClient := containerClient.NewBlockBlobClient(blobName)
+	blobClient.UploadBuffer(context.Background(), []byte{}, nil)
+}
+
+func setupTempFile(filePath, content string) {
+	os.WriteFile(filePath, []byte(content), 0644)
 }
