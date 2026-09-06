@@ -70,7 +70,7 @@ func TestBlobsListCmd_Functionality_BlobSnapshots(t *testing.T) {
 		{
 			name:   "blob snapshots",
 			args:   []string{"blobs", "ls", "-n=foo", "-c=blobs", "-p=snap", "-s"},
-			stdOut: fmt.Sprintf("snapshot/blob-with-snapshot.txt@%s\nsnapshot/blob-with-snapshot.txt", *snapshot),
+			stdOut: fmt.Sprintf("snapshot/blob-with-snapshot.txt\nsnapshot/blob-with-snapshot.txt@%s", *snapshot),
 		},
 	}
 
