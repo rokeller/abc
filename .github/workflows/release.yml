@@ -35,7 +35,7 @@ jobs:
             -ldflags "-s -w \
                 -X github.com/rokeller/abc/cmd.version=${{ github.event.release.name }}"
         
-        tar -cvzf "$ARCHIVE_NAME" -C _out .
+        tar -cvzf "$ARCHIVE_NAME" -C _out $(ls -A _out)
         echo "ARCHIVE_PATH=$ARCHIVE_NAME" >> "$GITHUB_ENV"
         echo "ARCHIVE_MEDIA_TYPE=application/gzip" >> "$GITHUB_ENV"
 
