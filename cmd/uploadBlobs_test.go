@@ -43,7 +43,7 @@ func Test_runUploadBlobs(t *testing.T) {
 				path.Join(tempBase, "upload-blob-1.txt"),
 			},
 			verify: func(t *testing.T) {
-				content, _ := downloadBlobContent(t, container, "upload-blob-1.txt")
+				content, _, _ := downloadBlobContent(t, container, "upload-blob-1.txt")
 				if string(content) != "0001" {
 					t.Errorf("got content %q, want %q", string(content), "0001")
 				}
@@ -65,7 +65,7 @@ func Test_runUploadBlobs(t *testing.T) {
 				path.Join(tempBase, "upload-blob-2.txt"),
 			},
 			verify: func(t *testing.T) {
-				content, contentType := downloadBlobContent(t, container, "upload-blob-2.txt")
+				content, contentType, _ := downloadBlobContent(t, container, "upload-blob-2.txt")
 				if string(content) != "0002" {
 					t.Errorf("got content %q, want %q", string(content), "0002")
 				}
@@ -82,7 +82,7 @@ func Test_runUploadBlobs(t *testing.T) {
 				path.Join(tempBase, "upload-blob-2.txt"),
 			},
 			verify: func(t *testing.T) {
-				content, contentType := downloadBlobContent(t, container, "test/upload-blob-2.txt")
+				content, contentType, _ := downloadBlobContent(t, container, "test/upload-blob-2.txt")
 				if string(content) != "0002" {
 					t.Errorf("got content %q, want %q", string(content), "0002")
 				}
@@ -99,13 +99,69 @@ func Test_runUploadBlobs(t *testing.T) {
 				path.Join(tempBase, "upload-blob-2.txt"),
 			},
 			verify: func(t *testing.T) {
-				content, _ := downloadBlobContent(t, container, "multi/upload-blob-1.txt")
+				content, _, _ := downloadBlobContent(t, container, "multi/upload-blob-1.txt")
 				if string(content) != "0001" {
 					t.Errorf("got content %q, want %q", string(content), "0001")
 				}
-				content, _ = downloadBlobContent(t, container, "multi/upload-blob-2.txt")
+				content, _, _ = downloadBlobContent(t, container, "multi/upload-blob-2.txt")
 				if string(content) != "0002" {
 					t.Errorf("got content %q, want %q", string(content), "0002")
+				}
+			},
+		},
+		{
+			name: "WithMetadata",
+			args: []string{
+				"blobs", "up", "-n=foo", "-c=uploads", "--prefix=meta/",
+				"--metadata", "meta1=value1,meta2=value2",
+				path.Join(tempBase, "upload-blob-1.txt"),
+				path.Join(tempBase, "upload-blob-2.txt"),
+			},
+			verify: func(t *testing.T) {
+				expectedMeta := map[string]*string{
+					"Meta1": new("value1"),
+					"Meta2": new("value2"),
+				}
+
+				content, _, meta := downloadBlobContent(t, container, "meta/upload-blob-1.txt")
+				if string(content) != "0001" {
+					t.Errorf("got content %q, want %q", string(content), "0001")
+				}
+				if !compareBlobMetadata(t, expectedMeta, meta) {
+					t.Errorf("got metadata %v, want %v", meta, expectedMeta)
+				}
+
+				content, _, meta = downloadBlobContent(t, container, "meta/upload-blob-2.txt")
+				if string(content) != "0002" {
+					t.Errorf("got content %q, want %q", string(content), "0002")
+				}
+				if !compareBlobMetadata(t, expectedMeta, meta) {
+					t.Errorf("got metadata %v, want %v", meta, expectedMeta)
+				}
+			},
+		},
+		{
+			name: "WithTags",
+			args: []string{
+				"blobs", "up", "-n=foo", "-c=uploads", "--prefix=tags/",
+				"--tags", "tag1=value1,tag2=value2",
+				path.Join(tempBase, "upload-blob-1.txt"),
+				path.Join(tempBase, "upload-blob-2.txt"),
+			},
+			verify: func(t *testing.T) {
+				expectedTags := []*blob.Tags{
+					new(blob.Tags{Key: new("tag1"), Value: new("value1")}),
+					new(blob.Tags{Key: new("tag2"), Value: new("value2")}),
+				}
+
+				tags := getBlobTags(t, container, "tags/upload-blob-1.txt")
+				if !compareBlobTags(t, expectedTags, tags) {
+					t.Errorf("got tags %v, want %v", tags, expectedTags)
+				}
+
+				tags = getBlobTags(t, container, "tags/upload-blob-2.txt")
+				if !compareBlobTags(t, expectedTags, tags) {
+					t.Errorf("got tags %v, want %v", tags, expectedTags)
 				}
 			},
 		},
@@ -114,7 +170,7 @@ func Test_runUploadBlobs(t *testing.T) {
 	executeTestCases(t, tc)
 }
 
-func downloadBlobContent(t *testing.T, container *container.Client, blobName string) ([]byte, string) {
+func downloadBlobContent(t *testing.T, container *container.Client, blobName string) ([]byte, string, map[string]*string) {
 	client := container.NewBlobClient(blobName)
 	resp, err := client.DownloadStream(t.Context(), &blob.DownloadStreamOptions{})
 	if nil != err {
@@ -125,5 +181,14 @@ func downloadBlobContent(t *testing.T, container *container.Client, blobName str
 	if nil != err {
 		t.Errorf("got error: %v", err)
 	}
-	return content, *resp.ContentType
+	return content, *resp.ContentType, resp.Metadata
+}
+
+func getBlobTags(t *testing.T, container *container.Client, blobName string) []*blob.Tags {
+	client := container.NewBlobClient(blobName)
+	resp, err := client.GetTags(t.Context(), nil)
+	if nil != err {
+		t.Errorf("got error: %v", err)
+	}
+	return resp.BlobTags.BlobTagSet
 }

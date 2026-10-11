@@ -26,6 +26,13 @@ func init() {
 		"content type of blobs to upload; only a single content type can be specified - if specified, applies to all uploaded blobs")
 	uploadBlobsCmd.Flags().BoolP(
 		"overwrite", "f", true, "overwrite the blob if it already exists")
+
+	uploadBlobsCmd.Flags().StringToString(
+		"metadata", map[string]string{},
+		"metadata for blobs to upload, formatted as a comma-separated list of entries with 'key=val'")
+	uploadBlobsCmd.Flags().StringToString(
+		"tags", map[string]string{},
+		"tags for blobs to upload, formatted as a comma-separated list of entries with 'key=val'")
 }
 
 var uploadBlobsCmd = &cobra.Command{
@@ -41,6 +48,15 @@ func runUploadBlobs(cmd *cobra.Command, args []string) error {
 	prefixFlag := getFlagValue(cmd, "prefix")
 	contentTypeFlag := getFlagValue(cmd, "content-type")
 	overwriteFlag := getBoolFlagValue(cmd, "overwrite")
+	metadata, err := cmd.Flags().GetStringToString("metadata")
+	if nil != err {
+		return err
+	}
+	tags, err := cmd.Flags().GetStringToString("tags")
+	if nil != err {
+		return err
+	}
+
 	ctx := fileUploadContext{
 		ctx:             cmd.Context(),
 		blobPrefix:      "",
@@ -57,6 +73,12 @@ func runUploadBlobs(cmd *cobra.Command, args []string) error {
 	if nil != contentTypeFlag {
 		ctx.contentType = *contentTypeFlag
 	}
+	if nil != metadata {
+		ctx.metadata = metadata
+	}
+	if nil != tags {
+		ctx.tags = tags
+	}
 
 	for _, arg := range args {
 		if err := ctx.uploadFile(arg); nil != err {
@@ -72,6 +94,9 @@ type fileUploadContext struct {
 	overwrite       bool
 	contentType     string
 	containerClient *container.Client
+
+	metadata map[string]string
+	tags     map[string]string
 }
 
 func (c *fileUploadContext) uploadFile(filePath string) error {
@@ -101,10 +126,23 @@ func (c *fileUploadContext) uploadFile(filePath string) error {
 	_, err = blobClient.UploadFile(c.ctx, file, &blockblob.UploadFileOptions{
 		AccessConditions: accessConditions,
 		HTTPHeaders:      httpHeaders,
+		Metadata:         c.convertMetadata(),
+		Tags:             c.tags,
 	})
 	if nil != err && bloberror.HasCode(err, bloberror.BlobAlreadyExists) {
 		return fmt.Errorf("failed to overwrite %q with file %q: blob already exists",
 			blobName, fileName)
 	}
 	return err
+}
+
+func (c *fileUploadContext) convertMetadata() map[string]*string {
+	if nil == c.metadata {
+		return nil
+	}
+	res := make(map[string]*string, len(c.metadata))
+	for k, v := range c.metadata {
+		res[k] = &v
+	}
+	return res
 }

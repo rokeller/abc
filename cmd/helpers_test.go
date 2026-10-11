@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/service"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -77,7 +78,6 @@ func (testCase testCase) executeTestCase(t *testing.T) {
 	t.Helper()
 
 	stdOut, stdErr, err := execute(t, testCase.args...)
-
 	if nil != testCase.err {
 		assert.EqualError(t, err, testCase.err.Error(), "expected error must match")
 	} else {
@@ -153,4 +153,50 @@ func clientFactoryForTest(c *cobra.Command) (*service.Client, error) {
 	}
 
 	return client, nil
+}
+
+func compareBlobMetadata(t *testing.T, got, want map[string]*string) bool {
+	t.Helper()
+
+	if nil == got && nil == want {
+		return true
+	} else if nil == got && nil != want || nil != got && nil == want {
+		return false
+	} else if len(got) != len(want) {
+		return false
+	}
+
+	for k, vWant := range want {
+		if vGot, found := got[k]; !found {
+			return false
+		} else if vGot == vWant {
+			continue
+		} else if nil == vGot && nil != vWant || nil != vGot && nil == vWant {
+			return false
+		} else if *vGot != *vWant {
+			return false
+		}
+	}
+	return true
+}
+
+func compareBlobTags(t *testing.T, got, want []*blob.Tags /*map[string]string*/) bool {
+	t.Helper()
+
+	if nil == got && nil == want {
+		return true
+	} else if nil == got && nil != want || nil != got && nil == want {
+		return false
+	} else if len(got) != len(want) {
+		return false
+	}
+
+	for i, tagWant := range want {
+		if *got[i].Key != *tagWant.Key {
+			return false
+		} else if *got[i].Value != *tagWant.Value {
+			return false
+		}
+	}
+	return true
 }
