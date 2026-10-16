@@ -186,15 +186,25 @@ func compareBlobTags(t *testing.T, got, want []*blob.Tags /*map[string]string*/)
 	if nil == got && nil == want {
 		return true
 	} else if nil == got && nil != want || nil != got && nil == want {
+		t.Error("blob tags: got nil but want non-nil")
 		return false
 	} else if len(got) != len(want) {
+		t.Errorf("blob tags: got len %d but want len %d", len(got), len(want))
 		return false
 	}
 
-	for i, tagWant := range want {
-		if *got[i].Key != *tagWant.Key {
+	gotMap := make(map[string]string, len(want))
+	for _, tagGot := range got {
+		gotMap[*tagGot.Key] = *tagGot.Value
+	}
+
+	for _, tagWant := range want {
+		gotVal, found := gotMap[*tagWant.Key]
+		if !found {
+			t.Errorf("blob tags: got is missing key %q from want", *tagWant.Key)
 			return false
-		} else if *got[i].Value != *tagWant.Value {
+		} else if gotVal != *tagWant.Value {
+			t.Errorf("blob tags: got value %q but want %q", gotVal, *tagWant.Value)
 			return false
 		}
 	}

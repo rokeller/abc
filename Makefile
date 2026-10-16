@@ -17,6 +17,10 @@ cover: debug
 	@go tool cover -html=coverage.out -o coverage.html
 	@go-cover-treemap -coverprofile coverage.out > coverage.svg
 
+update:
+	@go get -u -v ./...
+	@go mod tidy
+
 blah:
 	# @go tool cover -html=coverage.out
 	# @go tool cover -html=coverage.out
