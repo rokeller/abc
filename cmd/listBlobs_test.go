@@ -58,6 +58,26 @@ func TestBlobsListCmd_Functionality(t *testing.T) {
 			stdOut: strings.Join(manyBlobs[0:9], "\n"),
 		},
 
+		// // deleted blob
+		// {
+		// 	name:   "deleted blob",
+		// 	args:   []string{"blobs", "ls", "-n=foo", "-c=blobs", "-p=del", "-d"},
+		// 	stdOut: "deleted/deleted-blob.txt@deleted",
+		// },
+
+		// // blob snapshots
+		// {
+		// 	name:   "blob snapshots",
+		// 	args:   []string{"blobs", "ls", "-n=foo", "-c=blobs", "-p=snap", "-s"},
+		// 	stdOut: fmt.Sprintf("snapshot/blob-with-snapshot.txt@%s\nsnapshot/blob-with-snapshot.txt", *snapshot),
+		// },
+
+		// // blob versions
+		// {
+		// 	name:   "blob version",
+		// 	args:   []string{"blobs", "ls", "-n=foo", "-c=blobs", "-p=ver", "--versions"},
+		// 	stdOut: fmt.Sprintf("version/versioned-blob.txt@v%s\nversion/versioned-blob.txt", "blah"),
+		// },
 	}
 
 	executeTestCases(t, tc)
@@ -70,7 +90,7 @@ func TestBlobsListCmd_Functionality_BlobSnapshots(t *testing.T) {
 		{
 			name:   "blob snapshots",
 			args:   []string{"blobs", "ls", "-n=foo", "-c=blobs", "-p=snap", "-s"},
-			stdOut: fmt.Sprintf("snapshot/blob-with-snapshot.txt\nsnapshot/blob-with-snapshot.txt@%s", *snapshot),
+			stdOut: fmt.Sprintf("snapshot/blob-with-snapshot.txt@%s\nsnapshot/blob-with-snapshot.txt", *snapshot),
 		},
 	}
 
